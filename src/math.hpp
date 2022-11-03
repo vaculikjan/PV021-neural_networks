@@ -28,3 +28,5 @@ vec2d mul(const vec2d &v1, const vec2d &v2);
  * @return vec2d Transposed matrix.
  */
 vec2d transpose(const vec2d &v);
+
+vec2d operator+(const vec2d &v1, const vec2d &v2);

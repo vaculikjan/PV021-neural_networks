@@ -1,6 +1,7 @@
 #include "math.hpp"
 
 #include <iostream>
+#include <random>
 #include <stdexcept>
 
 vec2d mul(const vec2d &v1, const vec2d &v2)
@@ -34,16 +35,6 @@ vec2d mul(const vec2d &v1, const vec2d &v2)
                 mul[i][j] += v1[i][k] * v2[k][j];
             }
 
-    // outputs the matrix (for debug purposes)
-    std::cout << std::endl << "Output Matrix: " << std::endl;
-    for (int i = 0; i < r1; ++i)
-        for (int j = 0; j < c2; ++j)
-        {
-            std::cout << " " << mul[i][j];
-            if (j == c2 - 1)
-                std::cout << std::endl;
-        }
-
     return mul;
 }
 
@@ -62,20 +53,35 @@ vec2d transpose(const vec2d &v)
         transpose.push_back(std::vector<double>(r, 0));
     }
 
-    for (int i = 0; i < r; ++i)
-        for (int j = 0; j < c; ++j)
+    for (int i = 0; i < r; i++)
+        for (int j = 0; j < c; j++)
         {
             transpose[j][i] = v[i][j];
         }
 
-    std::cout << std::endl << "Output Matrix: " << std::endl;
-    for (int i = 0; i < c; ++i)
-        for (int j = 0; j < r; ++j)
-        {
-            std::cout << " " << transpose[i][j];
-            if (j == r - 1)
-                std::cout << std::endl;
-        }
-
     return transpose;
+}
+
+vec2d operator+(const vec2d &v1, const vec2d &v2)
+{
+
+    vec2d::const_iterator row;
+    std::vector<double>::const_iterator col;
+
+    vec2d res;
+
+    int i = 0;
+    for (row = v1.begin(); row != v1.end(); row++)
+    {
+        std::vector<double> vec;
+
+        for (col = row->begin(); col != row->end(); col++)
+        {
+            vec.push_back(*col + v2[i][0]);
+        }
+        i++;
+        res.push_back(vec);
+    }
+
+    return res;
 }
