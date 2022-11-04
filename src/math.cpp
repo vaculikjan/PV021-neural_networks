@@ -79,7 +79,72 @@ vec2d operator+(const vec2d &v1, const vec2d &v2)
         {
             vec.push_back(*col + v2[i][0]);
         }
+
         i++;
+        res.push_back(vec);
+    }
+
+    return res;
+}
+
+vec2d operator-(const vec2d &v1, const vec2d &v2)
+{
+
+    vec2d res;
+
+    for (int i = 0; i < v1.size(); i++)
+    {
+        std::vector<double> vec;
+
+        for (int j = 0; j < v1[0].size(); j++)
+        {
+            vec.push_back(v1[i][j] - v2[i][j]);
+        }
+
+        res.push_back(vec);
+    }
+
+    return res;
+}
+
+vec2d operator*(double s, const vec2d &v)
+{
+
+    vec2d::const_iterator row;
+    std::vector<double>::const_iterator col;
+
+    vec2d res;
+
+    for (row = v.begin(); row != v.end(); row++)
+    {
+        std::vector<double> vec;
+
+        for (col = row->begin(); col != row->end(); col++)
+        {
+            vec.push_back(*col * s);
+        }
+        res.push_back(vec);
+    }
+
+    return res;
+}
+
+vec2d element_sum(const vec2d &v)
+{
+
+    vec2d::const_iterator row;
+    std::vector<double>::const_iterator col;
+
+    vec2d res;
+
+    for (row = v.begin(); row != v.end(); row++)
+    {
+        double sum = 0;
+        for (col = row->begin(); col != row->end(); col++)
+        {
+            sum += *col;
+        }
+        std::vector<double> vec{sum};
         res.push_back(vec);
     }
 
