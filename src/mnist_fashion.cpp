@@ -2,24 +2,40 @@
 #include "math.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <random>
+#include <chrono>
+
+auto start = std::chrono::steady_clock::now();
+
+/**
+ * @brief Print runtime since program started.
+ *
+ * Calculates and outputs program runtime duration since the execution started.
+ * 
+ * @param message String containing message identifying the method call.
+ */
+void measureTime(std::string message);
 
 void init_params(vec2d &W, vec2d &b, int rows, int cols);
-void forward_prop(const vec2d &W1, const vec2d &b1, const vec2d &W2, const vec2d &b2, const vec2d X, vec2d &Z1,
-                  vec2d &A1, vec2d &Z2, vec2d &A2);
+void forward_prop(const vec2d &W1, const vec2d &b1, const vec2d &W2, const vec2d &b2, const vec2d X, vec2d &Z1,vec2d &A1, vec2d &Z2, vec2d &A2);
 vec2d ReLU(const vec2d &Z);
 vec2d softmax(const vec2d &Z);
 vec2d one_hot_encode(const vec2d &Y, int classes);
-void back_prop(const vec2d &Z1, const vec2d &A1, const vec2d &Z2, const vec2d &A2, const vec2d &W2, const vec2d X,
-               const vec2d Y, vec2d &d_W1, vec2d &d_b1, vec2d &d_W2, vec2d &d_b2);
+void back_prop(const vec2d &Z1, const vec2d &A1, const vec2d &Z2, const vec2d &A2, const vec2d &W2, const vec2d X,const vec2d Y, vec2d &d_W1, vec2d &d_b1, vec2d &d_W2, vec2d &d_b2);
+
+void measuretime(std::string message){
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    std::cout << message << ": " << std::chrono::duration<double, std::milli>(diff).count()/1000 << "s" << std::endl;
+}
 
 int main()
 {
-
     vec2d v1{
         {1, 2, 3, 4},
-        {5, 6, 7, 8},
+        {5, 6, 7, 8}, 
         {9, 10, 11, 12},
     };
 
@@ -29,16 +45,26 @@ int main()
         {9, 10, 11, 12},
         {13, 14, 15, 16},
     };
-
+    
     mul(v1, v2);
     transpose(v1);
-    vec2d X_train = (1.0 / 255.0) * transpose(load_csv("../data/fashion_mnist_train_vectors.csv"));
+ 
+    
+    measuretime("TRAIN_DATA_LOAD - begin");
+    vec2d train_data = load_csv("../data/fashion_mnist_train_vectors.csv");
+    //vec2d train_data = load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_vectors.csv");
+    measuretime("TRAIN_DATA_LOAD - end");
+
+    vec2d X_train = (1.0 / 255.0) * transpose(train_data);
+
     vec2d Y_train = load_csv("../data/fashion_mnist_train_labels.csv");
+    //vec2d Y_train = load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_labels.csv");
 
     vec2d W1;
     vec2d b1;
-    vec2d W2;
+    vec2d W2; 
     vec2d b2;
+
     init_params(W1, b1, 10, 784);
     init_params(W2, b2, 10, 10);
 
@@ -47,7 +73,9 @@ int main()
     vec2d Z2;
     vec2d A2;
 
+    measuretime("FORWARD_PROP - begin");
     forward_prop(W1, b1, W2, b2, X_train, Z1, A1, Z2, A2);
+    measuretime("FORWARD_PROP - end");
 
     Y_train = transpose(one_hot_encode(Y_train, 10));
     return 0;
@@ -77,8 +105,7 @@ void init_params(vec2d &W, vec2d &b, int rows, int cols)
     return;
 }
 
-void forward_prop(const vec2d &W1, const vec2d &b1, const vec2d &W2, const vec2d &b2, const vec2d X, vec2d &Z1,
-                  vec2d &A1, vec2d &Z2, vec2d &A2)
+void forward_prop(const vec2d &W1, const vec2d &b1, const vec2d &W2, const vec2d &b2, const vec2d X, vec2d &Z1,vec2d &A1, vec2d &Z2, vec2d &A2)
 {
     Z1 = mul(W1, X) + b1;
     A1 = ReLU(Z1);

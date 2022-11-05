@@ -29,12 +29,13 @@ vec2d mul(const vec2d &v1, const vec2d &v2)
 
     // multiplication calculation
     for (int i = 0; i < r1; i++)
-        for (int j = 0; j < c2; j++)
-            for (int k = 0; k < c1; k++)
+        for (int k = 0; k < c1; k++)
+            for (int j = 0; j < c2; j++)
             {
                 mul[i][j] += v1[i][k] * v2[k][j];
             }
 
+    
     return mul;
 }
 
@@ -43,7 +44,7 @@ vec2d transpose(const vec2d &v)
 
     // get dimensions of the matrix
     int r = v.size();
-    int c = v[0].size();
+    int c = v[1].size();
 
     // set up product matrix
     vec2d transpose;

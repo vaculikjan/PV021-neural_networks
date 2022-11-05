@@ -2,7 +2,7 @@
 
 #include <vector>
 
-typedef std::vector<std::vector<double>> vec2d;
+typedef std::vector<std::vector<double> > vec2d;
 
 /**
  * @brief Multiply two 2D matrices.
