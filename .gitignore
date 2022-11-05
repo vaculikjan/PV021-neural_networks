@@ -1,3 +1,4 @@
 .vscode/
 data/
 src/mnist_fashion.exe
+src/mnist_fashion
