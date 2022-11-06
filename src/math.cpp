@@ -35,7 +35,6 @@ vec2d mul(const vec2d &v1, const vec2d &v2)
                 mul[i][j] += v1[i][k] * v2[k][j];
             }
 
-    
     return mul;
 }
 
@@ -44,15 +43,10 @@ vec2d transpose(const vec2d &v)
 
     // get dimensions of the matrix
     int r = v.size();
-    int c = v[1].size();
+    int c = v[0].size();
 
     // set up product matrix
-    vec2d transpose;
-
-    for (int i = 0; i < c; i++)
-    {
-        transpose.push_back(std::vector<double>(r, 0));
-    }
+    vec2d transpose(c, std::vector<double>(r));
 
     for (int i = 0; i < r; i++)
         for (int j = 0; j < c; j++)
@@ -146,6 +140,26 @@ vec2d element_sum(const vec2d &v)
             sum += *col;
         }
         std::vector<double> vec{sum};
+        res.push_back(vec);
+    }
+
+    return res;
+}
+
+vec2d element_mul(const vec2d &v1, const vec2d &v2)
+{
+
+    vec2d res;
+
+    for (int i = 0; i < v1.size(); i++)
+    {
+        std::vector<double> vec;
+
+        for (int j = 0; j < v1[0].size(); j++)
+        {
+            vec.push_back(v1[i][j] * v2[i][j]);
+        }
+
         res.push_back(vec);
     }
 

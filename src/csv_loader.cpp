@@ -16,10 +16,11 @@ vec2d load_csv(string file_path)
 
     file.open(file_path);
 
-    if(!file.is_open()){
+    if (!file.is_open())
+    {
         throw std::runtime_error("Could not open file");
     }
-    
+
     vec2d data;
 
     while (getline(file, line))
