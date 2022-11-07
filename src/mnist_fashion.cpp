@@ -1,5 +1,7 @@
-#include "csv_loader.hpp"
+#include "activation_functions.hpp"
 #include "math.hpp"
+#include "misc.hpp"
+#include "neural_network.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -9,61 +11,30 @@
 
 auto start = std::chrono::steady_clock::now();
 
-/**
- * @brief Print runtime since program started.
- *
- * Calculates and outputs program runtime duration since the execution started.
- *
- * @param message String containing message identifying the method call.
- */
-void measureTime(std::string message);
-
 void init_params(vec2d &W, vec2d &b, int rows, int cols);
 void forward_prop(const vec2d &W1, const vec2d &b1, const vec2d &W2, const vec2d &b2, const vec2d X, vec2d &Z1,
                   vec2d &A1, vec2d &Z2, vec2d &A2);
-vec2d ReLU(const vec2d &Z);
-vec2d softmax(const vec2d &Z);
-vec2d one_hot_encode(const vec2d &Y, int classes);
 void back_prop(const vec2d &Z1, const vec2d &A1, const vec2d &A2, const vec2d &W2, const vec2d &X, const vec2d &Y,
                const vec2d &one_hot_Y, vec2d &d_W1, vec2d &d_b1, vec2d &d_W2, vec2d &d_b2);
 void update(double alpha, const vec2d &d_W1, const vec2d &d_b1, const vec2d &d_W2, const vec2d &d_b2, vec2d &W1,
             vec2d &b1, vec2d &W2, vec2d &b2);
 void train(const vec2d &X, const vec2d &Y, double training_rate, int iterations, int neurons);
-void measuretime(std::string message)
-{
-    auto end = std::chrono::steady_clock::now();
-    auto diff = end - start;
-    std::cout << message << ": " << std::chrono::duration<double, std::milli>(diff).count() / 1000 << "s" << std::endl;
-}
 
 int main()
 {
-    vec2d v1{
-        {1, 2, 3, 4},
-        {5, 6, 7, 8},
-        {9, 10, 11, 12},
-    };
-
-    vec2d v2{
-        {1, 2, 3, 4},
-        {5, 6, 7, 8},
-        {9, 10, 11, 12},
-        {13, 14, 15, 16},
-    };
-
-    vec2d mltp = mul(v1, v2);
-    transpose(v1);
 
     vec2d train_data = load_csv("../data/fashion_mnist_train_vectors.csv");
     // vec2d train_data =
     // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_vectors.csv");
-    vec2d X_train = (1.0 / 255.0) * transpose(train_data);
+    // vec2d X_train = (1.0 / 255.0) * transpose(train_data);
 
     vec2d Y_train = load_csv("../data/fashion_mnist_train_labels.csv");
     // vec2d Y_train =
     // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_labels.csv");
 
-    train(X_train, Y_train, 0.1, 500, 50);
+    // train(X_train, Y_train, 0.1, 500, 50);
+    NeuralNetwork nn = NeuralNetwork(train_data, Y_train, 0.2, 100, 100);
+    nn.train();
 
     return 0;
 }
@@ -90,88 +61,6 @@ void init_params(vec2d &W, vec2d &b, int rows, int cols)
     }
 
     return;
-}
-
-vec2d ReLU(const vec2d &Z)
-{
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
-    {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
-        {
-            vec.push_back(std::max(*col, 0.0));
-        }
-
-        A.push_back(vec);
-    }
-
-    return A;
-}
-
-vec2d ReLU_derivative(const vec2d &Z)
-{
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
-    {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
-        {
-            if (*col > 0)
-            {
-                vec.push_back(1);
-            }
-            else
-            {
-                vec.push_back(0);
-            }
-        }
-
-        A.push_back(vec);
-    }
-
-    return A;
-}
-
-vec2d softmax(const vec2d &Z)
-{
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-    std::vector<double>::iterator sum_it;
-
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
-    {
-        std::vector<double> vec;
-        double sum = 0;
-
-        for (col = row->begin(); col != row->end(); col++)
-        {
-            double res = std::exp(*col);
-            sum += res;
-            vec.push_back(res);
-        }
-
-        for (sum_it = vec.begin(); sum_it != vec.end(); sum_it++)
-        {
-            *sum_it = *sum_it / sum;
-        }
-
-        A.push_back(vec);
-    }
-
-    return A;
 }
 
 vec2d one_hot_encode(const vec2d &Y, int classes)
@@ -304,19 +193,22 @@ void train(const vec2d &X, const vec2d &Y, double training_rate, int iterations,
     vec2d one_hot_Y = transpose(one_hot_encode(Y, 10));
     for (int i = 0; i < iterations; i++)
     {
-
-        forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
-        back_prop(Z1, A1, A2, W2, X, Y, one_hot_Y, d_W1, d_b1, d_W2, d_b2);
-        update(training_rate, d_W1, d_b1, d_W2, d_b2, W1, b1, W2, b2);
-
-        if (i % 10 == 0)
+        for (int j = 0; j < 60000 / 100; j++)
         {
-            vec2d pred = one_hot_decode(transpose(A2));
-            double acc = check_accuracy(pred, Y);
 
-            std::cout << "Iteration:" << i << "\n";
-            std::cout << "Accuracy:" << acc << "\n";
-            measuretime("Time");
+            forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
+            back_prop(Z1, A1, A2, W2, X, Y, one_hot_Y, d_W1, d_b1, d_W2, d_b2);
+            update(training_rate, d_W1, d_b1, d_W2, d_b2, W1, b1, W2, b2);
+
+            if (i % 10 == 0)
+            {
+                vec2d pred = one_hot_decode(transpose(A2));
+                double acc = check_accuracy(pred, Y);
+
+                std::cout << "Iteration:" << i << "\n";
+                std::cout << "Accuracy:" << acc << "\n";
+                measuretime(start, "Time");
+            }
         }
     }
 }

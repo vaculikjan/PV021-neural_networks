@@ -1,8 +1,10 @@
-#include "csv_loader.hpp"
+#include "misc.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -36,4 +38,11 @@ vec2d load_csv(string file_path)
     }
 
     return data;
+}
+
+void measuretime(std::chrono::time_point<std::chrono::steady_clock> start, std::string message)
+{
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    std::cout << message << ": " << std::chrono::duration<double, std::milli>(diff).count() / 1000 << "s" << std::endl;
 }

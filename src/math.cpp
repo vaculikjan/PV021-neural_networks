@@ -57,6 +57,7 @@ vec2d transpose(const vec2d &v)
     return transpose;
 }
 
+// adds a vector to a matrix
 vec2d operator+(const vec2d &v1, const vec2d &v2)
 {
 
