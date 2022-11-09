@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "TwoDPivotWrapper.hpp"
 
 typedef std::vector<std::vector<double>> vec2d;
 
@@ -33,6 +32,6 @@ vec2d transpose(const vec2d &v);
 vec2d operator+(const vec2d &v1, const vec2d &v2);
 vec2d operator-(const vec2d &v1, const vec2d &v2);
 vec2d operator*(double s, const vec2d &v);
-vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v);
+// vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v);
 vec2d element_sum(const vec2d &v);
 vec2d element_mul(const vec2d &v1, const vec2d &v2);

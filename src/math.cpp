@@ -129,7 +129,7 @@ vec2d operator*(double s, const vec2d &v)
 
     return res;
 }
-
+/*
 vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v)
 {
     std::vector<std::vector<double> > table;
@@ -149,6 +149,7 @@ vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v)
 
     return table;
 }
+*/
 
 vec2d element_sum(const vec2d &v)
 {

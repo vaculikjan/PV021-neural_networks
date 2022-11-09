@@ -27,21 +27,12 @@ NeuralNetwork::NeuralNetwork(const vec2d &X, const vec2d &Y, double training_rat
     this->X = (1.0 / 255.0) * X;
     this->Y = Y;
 
-    std::random_device r;
-    std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
-
-    // create two random engines with the same state
-    std::mt19937 eng1(seed);
-    auto eng2 = eng1;
-
-    // std::shuffle(std::begin(this->X), std::end(this->X), eng1);
-    // std::shuffle(std::begin(this->Y), std::end(this->Y), eng2);
-
     for (int i = 0; i < X.size() - batch_size; i += batch_size)
     {
         vec2d vec_x(this->X.begin() + i, this->X.begin() + i + batch_size);
         X_batch.push_back(transpose(vec_x));
         vec2d vec_y(this->Y.begin() + i, this->Y.begin() + i + batch_size);
+        vec_y = transpose(one_hot_encode(vec_y, 10));
         Y_batch.push_back(vec_y);
     }
 
@@ -130,11 +121,9 @@ double NeuralNetwork::check_accuracy(const vec2d &pred, const vec2d &Y)
     int number_of_examples = Y.size();
     int correct_predictions = 0;
 
-    int pred_size = pred.size();
-
     for (int i = 0; i < Y.size(); i++)
     {
-        if (Y[i][0] == pred[i][0])
+        if (int(Y[i][0]) == int(pred[i][0]))
         {
             correct_predictions++;
         }
@@ -155,7 +144,7 @@ void NeuralNetwork::forward_prop(const vec2d &batch)
     A3 = transpose(softmax(transpose(Z3)));
 }
 
-void NeuralNetwork::back_prop(const vec2d &batch)
+void NeuralNetwork::back_prop(const vec2d &batch, const vec2d &one_hot_Y)
 {
     // categorical cross entropy loss and softmax derivative
     vec2d output_error = A3 - one_hot_Y;
@@ -197,11 +186,11 @@ void NeuralNetwork::train()
     float last_acc = -1;
     for (int i = 0; i < epochs; i++)
     {
-        /*
+
         for (int j = 0; j < X_batch.size(); j++)
         {
             forward_prop(X_batch[j]);
-            back_prop(X_batch[j]);
+            back_prop(X_batch[j], Y_batch[j]);
             update();
 
             if (i % 10 == 0 && j == X_batch.size() - 1)
@@ -220,10 +209,10 @@ void NeuralNetwork::train()
                 std::cout << "Training rate:" << alpha << "\n";
             }
         }
-        */
 
         forward_prop(x_trans);
-        back_prop(x_trans);
+        /*
+        back_prop(x_trans, one_hot_Y);
         update();
 
         if (i % 5 == 0)
@@ -238,5 +227,6 @@ void NeuralNetwork::train()
             }
             last_acc = acc;
         }
+        */
     }
 }

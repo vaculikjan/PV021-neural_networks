@@ -40,7 +40,7 @@ class NeuralNetwork
     double check_accuracy(const vec2d &pred, const vec2d &Y);
     void update();
     void forward_prop(const vec2d &batch);
-    void back_prop(const vec2d &batch);
+    void back_prop(const vec2d &batch, const vec2d &one_hot_Y);
 
   public:
     NeuralNetwork(const vec2d &X, const vec2d &Y, double training_rate, int epochs, int batch_size);
