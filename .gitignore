@@ -1,4 +1,10 @@
 .vscode/
 data/
-src/mnist_fashion.exe
 src/mnist_fashion
+src/mnist_fashion.exe
+run.sh
+example_test_predictions.csv
+.gitignore
+README.md
+TODO.md
+.clang-format

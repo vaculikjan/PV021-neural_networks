@@ -20,10 +20,10 @@ vec2d mul(const vec2d &v1, const vec2d &v2)
 
     for (int i = 0; i < r1; i++)
     {
-        if (r2 != v1[i].size())
+        /*if (r2 != v1[i].size())
         {
             throw std::invalid_argument("Matrices have incompatible dimensions.");
-        }
+        }*/
 
         mul.push_back(std::vector<double>(c2, 0));
     }
@@ -128,6 +128,26 @@ vec2d operator*(double s, const vec2d &v)
     }
 
     return res;
+}
+
+vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v)
+{
+    std::vector<std::vector<double> > table;
+    int R = v.object.size();
+    for (int i = 0; i < R; i++)
+    {
+        // construct a vector of int
+        std::vector<double> vec;
+        int C = v.object[0].size();
+        for (int j = 0; j < C; j++)
+        {
+            vec.push_back(v.object[i][j] * s);
+        }
+    // push back above one-dimensional vector
+    table.push_back(vec);
+    }
+
+    return table;
 }
 
 vec2d element_sum(const vec2d &v)
