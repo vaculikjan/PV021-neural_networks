@@ -7,6 +7,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <omp.h>
 #include <random>
 
 auto start = std::chrono::steady_clock::now();
@@ -22,7 +23,6 @@ void train(const vec2d &X, const vec2d &Y, double training_rate, int iterations,
 
 int main()
 {
-
     vec2d train_data = load_csv("../data/fashion_mnist_train_vectors.csv");
     // vec2d train_data =
     // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_vectors.csv");
@@ -33,13 +33,29 @@ int main()
     // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_labels.csv");
 
     // train(X_train, Y_train, 0.1, 500, 50);
-    NeuralNetwork nn = NeuralNetwork(train_data, Y_train, 0.2, 100, 100);
-    nn.train();
+    // hyperparams
 
+    NeuralNetwork nn = NeuralNetwork(train_data, Y_train, 0.01, 1000, 200);
+    nn.train();
+    measuretime(start, "Finished");
+    /*
+    measuretime(start, "Start");
+    vec2d X = transpose(train_data);
+    measuretime(start, "Transpose");
+    vec2d W1;
+    vec2d b1;
+    init_params(W1, b1, 100, 784);
+    measuretime(start, "Init");
+    vec2d Z1 = mul(W1, X);
+    measuretime(start, "mul");
+    Z1 = Z1 + b1; // fast
+    measuretime(start, "+");
+    measuretime(start, "End");
+    */
     return 0;
 }
 
-void init_params(vec2d &W, vec2d &b, int rows, int cols)
+void init_params(vec2d &W, vec2d &b, int rows, int cols) // fast
 {
     std::random_device rd;
     std::mt19937 mt(rd());

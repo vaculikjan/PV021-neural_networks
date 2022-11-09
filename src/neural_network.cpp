@@ -1,6 +1,8 @@
 #include "neural_network.hpp"
 #include "activation_functions.hpp"
+#include "misc.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <random>
 
@@ -47,16 +49,17 @@ NeuralNetwork::NeuralNetwork(const vec2d &X, const vec2d &Y, double training_rat
 
     // initialize parameters for layers
 
-    init_params(W1, b1, 100, 784);
-    init_params(W2, b2, 10, 100);
-    init_params(W3, b3, 10, 50);
+    init_params(W1, b1, 150, 784);
+    init_params(W2, b2, 100, 150);
+    init_params(W3, b3, 10, 100);
 }
 
 void NeuralNetwork::init_params(vec2d &W, vec2d &b, int rows, int cols)
 {
+    double deviation = 2.0 / double(cols);
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_real_distribution<double> dist(-0.5, 0.5);
+    std::normal_distribution<double> dist(0, deviation);
 
     for (int i = 0; i < rows; i++)
     {
@@ -70,7 +73,7 @@ void NeuralNetwork::init_params(vec2d &W, vec2d &b, int rows, int cols)
 
     for (int i = 0; i < rows; i++)
     {
-        b.push_back(std::vector<double>{dist(mt)});
+        b.push_back(std::vector<double>{0.0});
     }
 
     return;
@@ -146,21 +149,29 @@ void NeuralNetwork::forward_prop(const vec2d &batch)
     A1 = ReLU(Z1);
 
     Z2 = mul(W2, A1) + b2;
-    A2 = transpose(softmax(transpose(Z2)));
+    A2 = ReLU(Z2);
+
+    Z3 = mul(W3, A2) + b3;
+    A3 = transpose(softmax(transpose(Z3)));
 }
 
 void NeuralNetwork::back_prop(const vec2d &batch)
 {
     // categorical cross entropy loss and softmax derivative
-    // categorical cross entropy loss and softmax derivative
-    vec2d output_error = A2 - one_hot_Y;
+    vec2d output_error = A3 - one_hot_Y;
 
-    d_W2 = (1.0 / examples) * (mul(output_error, transpose(A1)));
+    d_W3 = (1.0 / examples) * (mul(output_error, transpose(A2)));
 
     // should be one number
-    d_b2 = (1.0 / examples) * element_sum(output_error);
+    d_b3 = (1.0 / examples) * element_sum(output_error);
 
-    vec2d z1_error = element_mul(mul(transpose(W2), output_error), ReLU_derivative(Z1));
+    vec2d z2_error = element_mul(mul(transpose(W3), output_error), ReLU_derivative(Z2));
+
+    d_W2 = (1.0 / examples) * (mul(z2_error, transpose(A1)));
+    // should be one number
+    d_b2 = (1.0 / examples) * element_sum(z2_error);
+
+    vec2d z1_error = element_mul(mul(transpose(W2), z2_error), ReLU_derivative(Z1));
 
     d_W1 = (1.0 / examples) * (mul(z1_error, transpose(batch)));
     d_b1 = (1.0 / examples) * element_sum(z1_error);
@@ -173,36 +184,59 @@ void NeuralNetwork::update()
 
     W2 = W2 - (alpha * d_W2);
     b2 = b2 - (alpha * d_b2);
+
+    W3 = W3 - (alpha * d_W3);
+    b3 = b3 - (alpha * d_b3);
 }
 
 void NeuralNetwork::train()
 {
+    double x_size = X.size();
+    vec2d x_trans = transpose(X);
+    auto start = std::chrono::steady_clock::now();
+    float last_acc = -1;
     for (int i = 0; i < epochs; i++)
     {
         /*
-        for (int j = 0; j < batch_size; j++)
+        for (int j = 0; j < X_batch.size(); j++)
         {
             forward_prop(X_batch[j]);
             back_prop(X_batch[j]);
             update();
 
-            if (j % 100 == 0)
+            if (i % 10 == 0 && j == X_batch.size() - 1)
             {
-                vec2d pred = one_hot_decode(transpose(A2));
-                double acc = check_accuracy(pred, Y_batch[j]);
+                forward_prop(x_trans);
+                vec2d pred = one_hot_decode(transpose(A3));
+                double acc = check_accuracy(pred, Y);
+                if (acc - last_acc < 0)
+                {
+                    alpha = (std::max(alpha * 0.75, 0.001));
+                }
+                last_acc = acc;
 
-                std::cout << "Iteration:" << i << " Batch:" << j << "\n";
-                std::cout << "Accuracy:" << acc << "\n";
+                std::cout << "Iteration:" << i << "; ";
+                std::cout << "Accuracy:" << acc << "; ";
+                std::cout << "Training rate:" << alpha << "\n";
             }
         }
         */
-        forward_prop(transpose(X));
-        back_prop(transpose(X));
-        update();
-        vec2d pred = one_hot_decode(transpose(A2));
-        double acc = check_accuracy(pred, Y);
 
-        std::cout << "Iteration:" << i << "\n";
-        std::cout << "Accuracy:" << acc << "\n";
+        forward_prop(x_trans);
+        back_prop(x_trans);
+        update();
+
+        if (i % 5 == 0)
+        {
+            vec2d pred = one_hot_decode(transpose(A3));
+            double acc = check_accuracy(pred, Y);
+            std::cout << "Iteration:" << i << "\n";
+            std::cout << "Accuracy:" << acc << "\n";
+            if (acc - last_acc < 0)
+            {
+                alpha = (std::max(alpha * 0.75, 0.05));
+            }
+            last_acc = acc;
+        }
     }
 }

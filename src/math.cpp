@@ -1,6 +1,7 @@
 #include "math.hpp"
 
 #include <iostream>
+#include <omp.h>
 #include <random>
 #include <stdexcept>
 
@@ -28,9 +29,12 @@ vec2d mul(const vec2d &v1, const vec2d &v2)
     }
 
     // multiplication calculation
-    for (int i = 0; i < r1; i++)
-        for (int k = 0; k < c1; k++)
-            for (int j = 0; j < c2; j++)
+
+    int i, j, k;
+#pragma omp parallel for private(i, j, k) shared(v1, v2)
+    for (i = 0; i < r1; i++)
+        for (k = 0; k < c1; k++)
+            for (j = 0; j < c2; j++)
             {
                 mul[i][j] += v1[i][k] * v2[k][j];
             }
@@ -47,9 +51,10 @@ vec2d transpose(const vec2d &v)
 
     // set up product matrix
     vec2d transpose(c, std::vector<double>(r));
+    int i, j;
 
-    for (int i = 0; i < r; i++)
-        for (int j = 0; j < c; j++)
+    for (i = 0; i < r; i++)
+        for (j = 0; j < c; j++)
         {
             transpose[j][i] = v[i][j];
         }
