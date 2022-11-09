@@ -22,18 +22,37 @@ void train(const vec2d &X, const vec2d &Y, double training_rate, int iterations,
 
 int main()
 {
-
-    vec2d train_data = load_csv("../data/fashion_mnist_train_vectors.csv");
-    // vec2d train_data =
-    // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_vectors.csv");
-    // vec2d X_train = (1.0 / 255.0) * transpose(train_data);
-
+    // Honza paths
+///*
     vec2d Y_train = load_csv("../data/fashion_mnist_train_labels.csv");
-    // vec2d Y_train =
-    // load_csv("C:\\Users\\Martin\\Desktop\\PV021-neural_networks\\data\\fashion_mnist_train_labels.csv");
+    vec2d train_data = load_csv("../data/fashion_mnist_train_vectors.csv");
+    
+//*/
+    // Martin paths
+/*
+    vec2d train_data = load_csv("C:\\Users\\Martin\\Desktop\\Neurals_new\\data\\fashion_mnist_train_vectors.csv");
+    vec2d Y_train = load_csv("C:\\Users\\Martin\\Desktop\\Neurals_new\\data\\fashion_mnist_train_labels.csv");
+*/
 
-    // train(X_train, Y_train, 0.1, 500, 50);
-    NeuralNetwork nn = NeuralNetwork(train_data, Y_train, 0.2, 100, 100);
+    // Standard transpose
+///*
+    vec2d X_train = (1.0 / 255.0) * transpose(train_data);
+//*/
+    
+    // Efficient transpose
+/*
+    measuretime(start, "PRED");
+    TwoDPivotWrapper<vec2d> wrapper(train_data);
+    measuretime(start, "PO");
+    vec2d X_train = (1.0 / 255.0) * wrapper;
+    std::cout << X_train.size() << std::endl;
+*/
+
+    
+    
+
+    train(X_train, Y_train, 0.1, 500, 50);
+    NeuralNetwork nn = NeuralNetwork(X_train, Y_train, 0.2, 100, 100);
     nn.train();
 
     return 0;
