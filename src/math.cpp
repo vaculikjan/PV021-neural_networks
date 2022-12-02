@@ -5,190 +5,116 @@
 #include <random>
 #include <stdexcept>
 
-vec2d mul(const vec2d &v1, const vec2d &v2)
+// matrix multiplication
+vec mul(const vec &v1, const vec &v2, int r1, int c1, int r2, int c2)
 {
-
-    // get dimensions of matrices
-    int r1 = v1.size();
-    int c1 = v1[0].size();
-
-    int r2 = v2.size();
-    int c2 = v2[0].size();
-
-    // set up product matrix
-    vec2d mul;
-
-    for (int i = 0; i < r1; i++)
-    {
-        /*if (r2 != v1[i].size())
-        {
-            throw std::invalid_argument("Matrices have incompatible dimensions.");
-        }*/
-
-        mul.push_back(std::vector<double>(c2, 0));
-    }
-
-    // multiplication calculation
+    int size = r1 * c2;
+    vec mul(size);
 
     int i, j, k;
 #pragma omp parallel for private(i, j, k) shared(v1, v2)
-    for (i = 0; i < r1; i++)
-        for (k = 0; k < c1; k++)
-            for (j = 0; j < c2; j++)
-            {
-                mul[i][j] += v1[i][k] * v2[k][j];
-            }
+    for (int i = 0; i < r1; i++)
+    {
+        for (int j = 0; j < c2; j++)
+        {
+            double sum = 0;
+            for (int k = 0; k < c1; k++)
+                sum = sum + v1[i * c1 + k] * v2[k * c2 + j];
+            mul[i * c2 + j] = sum;
+        }
+    }
 
     return mul;
 }
 
-vec2d transpose(const vec2d &v)
+// matrix transposition
+vec transpose(const vec &v, int row, int col)
 {
-
-    // get dimensions of the matrix
-    int r = v.size();
-    int c = v[0].size();
-
-    // set up product matrix
-    vec2d transpose(c, std::vector<double>(r));
+    vec trans(row * col);
+    int k = 0;
     int i, j;
-
-    for (i = 0; i < r; i++)
-        for (j = 0; j < c; j++)
+    for (int i = 0; i < col; i++)
+    {
+        for (int j = 0; j < row; j++)
         {
-            transpose[j][i] = v[i][j];
+            trans[k++] = v[j * col + i];
         }
+    }
 
-    return transpose;
+    return trans;
 }
 
 // adds a vector to a matrix
-vec2d operator+(const vec2d &v1, const vec2d &v2)
+void add_vec_to_columns(vec &v1, const vec &v2, int row, int col)
 {
 
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-
-    vec2d res;
-
-    int i = 0;
-    for (row = v1.begin(); row != v1.end(); row++)
-    {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
+    int i, j;
+#pragma omp parallel for private(i, j) shared(v1, v2)
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
         {
-            vec.push_back(*col + v2[i][0]);
+            v1[i * col + j] += v2[i];
         }
 
-        i++;
-        res.push_back(vec);
-    }
-
-    return res;
+    return;
 }
 
-vec2d operator-(const vec2d &v1, const vec2d &v2)
+// matrix subtraction
+void matrix_subtract(vec &v1, const vec &v2, int row, int col)
 {
-
-    vec2d res;
-
-    for (int i = 0; i < v1.size(); i++)
-    {
-        std::vector<double> vec;
-
-        for (int j = 0; j < v1[0].size(); j++)
+    int i, j;
+#pragma omp parallel for private(i, j) shared(v1, v2)
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
         {
-            vec.push_back(v1[i][j] - v2[i][j]);
+            v1[i * col + j] -= v2[i * col + j];
         }
 
-        res.push_back(vec);
-    }
-
-    return res;
+    return;
 }
 
-vec2d operator*(double s, const vec2d &v)
+// multiply matrix by scalar
+void multiply_by_scalar(double s, vec &v, int row, int col)
 {
-
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-
-    vec2d res;
-
-    for (row = v.begin(); row != v.end(); row++)
-    {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
+    int i, j;
+#pragma omp parallel for private(i, j) shared(v, s)
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
         {
-            vec.push_back(*col * s);
+            v[i * col + j] *= s;
         }
-        res.push_back(vec);
-    }
-
-    return res;
+    return;
 }
-/*
-vec2d operator*(double s, const TwoDPivotWrapper<vec2d> &v)
-{
-    std::vector<std::vector<double> > table;
-    int R = v.object.size();
-    for (int i = 0; i < R; i++)
-    {
-        // construct a vector of int
-        std::vector<double> vec;
-        int C = v.object[0].size();
-        for (int j = 0; j < C; j++)
-        {
-            vec.push_back(v.object[i][j] * s);
-        }
-    // push back above one-dimensional vector
-    table.push_back(vec);
-    }
 
-    return table;
-}
-*/
-
-vec2d element_sum(const vec2d &v)
+// sum elements into one column
+vec element_sum(const vec &v, int row, int col)
 {
 
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
+    vec res(row);
 
-    vec2d res;
-
-    for (row = v.begin(); row != v.end(); row++)
+    for (int i = 0; i < row; i++)
     {
         double sum = 0;
-        for (col = row->begin(); col != row->end(); col++)
+        for (int j = 0; j < col; j++)
         {
-            sum += *col;
+            sum += v[i * col + j];
         }
-        std::vector<double> vec{sum};
-        res.push_back(vec);
+        res[i] = sum;
     }
 
     return res;
 }
 
-vec2d element_mul(const vec2d &v1, const vec2d &v2)
+// elementwise matrix multiplication
+vec element_mul(const vec &v1, const vec &v2, int row, int col)
 {
-
-    vec2d res;
-
-    for (int i = 0; i < v1.size(); i++)
-    {
-        std::vector<double> vec;
-
-        for (int j = 0; j < v1[0].size(); j++)
+    vec res(row * col);
+    int i, j;
+#pragma omp parallel for private(i, j) shared(v1, v2)
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
         {
-            vec.push_back(v1[i][j] * v2[i][j]);
+            res[i * col + j] = v1[i * col + j] * v2[i * col + j];
         }
-
-        res.push_back(vec);
-    }
-
     return res;
 }

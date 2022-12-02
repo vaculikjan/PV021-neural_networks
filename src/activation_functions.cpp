@@ -1,84 +1,60 @@
 #include "activation_functions.hpp"
 #include <cmath>
 
-vec2d ReLU(const vec2d &Z)
+vec ReLU(const vec &Z)
 {
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
+    vec res(Z.size());
 
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
+    int i;
+#pragma omp parallel for private(i) shared(Z, res)
+    for (i = 0; i < Z.size(); i++)
     {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
-        {
-            vec.push_back(std::max(*col, 0.0));
-        }
-
-        A.push_back(vec);
+        res[i] = std::max(Z[i], 0.0);
     }
 
-    return A;
+    return res;
 }
 
-vec2d ReLU_derivative(const vec2d &Z)
+vec ReLU_derivative(const vec &Z)
 {
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
+    vec res(Z.size());
 
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
+    int i;
+#pragma omp parallel for private(i) shared(Z, res)
+    for (i = 0; i < Z.size(); i++)
     {
-        std::vector<double> vec;
-
-        for (col = row->begin(); col != row->end(); col++)
+        if (Z[i] > 0)
         {
-            if (*col > 0)
-            {
-                vec.push_back(1);
-            }
-            else
-            {
-                vec.push_back(0);
-            }
+            res[i] = 1;
         }
-
-        A.push_back(vec);
+        else
+        {
+            res[i] = 0;
+        }
     }
 
-    return A;
+    return res;
 }
 
-vec2d softmax(const vec2d &Z)
+vec softmax(const vec &Z, int row, int col)
 {
-    vec2d::const_iterator row;
-    std::vector<double>::const_iterator col;
-    std::vector<double>::iterator sum_it;
+    vec soft_vec(row * col);
 
-    vec2d A;
-
-    for (row = Z.begin(); row != Z.end(); row++)
+    for (int i = 0; i < row; i++)
     {
-        std::vector<double> vec;
         double sum = 0;
-
-        for (col = row->begin(); col != row->end(); col++)
+        for (int j = 0; j < col; j++)
         {
-            double res = std::exp(*col);
+            double res = std::exp(Z[i * col + j]);
             sum += res;
-            vec.push_back(res);
+            soft_vec[i * col + j] = res;
         }
 
-        for (sum_it = vec.begin(); sum_it != vec.end(); sum_it++)
+        for (int j = 0; j < col; j++)
         {
-            *sum_it = *sum_it / sum;
+            soft_vec[i * col + j] = soft_vec[i * col + j] / sum;
         }
-
-        A.push_back(vec);
     }
 
-    return A;
+    return soft_vec;
 }
