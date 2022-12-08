@@ -57,3 +57,12 @@ vec one_hot_encode(const vec &y);
  * @return vec labels
  */
 vec one_hot_decode(const vec &one_hot_Y);
+
+/**
+ * @brief Outputs the train or test labels into a file.
+ *
+ * @param labels labels to output
+ * @param row number of labels
+ * @param file_name name of the output file
+ */
+void output_csv(vec labels, int row, std::string file_name);

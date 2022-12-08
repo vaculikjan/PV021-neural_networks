@@ -96,3 +96,15 @@ vec one_hot_decode(const vec &one_hot_Y)
 
     return y;
 }
+
+void output_csv(vec labels, int row, std::string file_name)
+{
+    ofstream output_file;
+    output_file.open(file_name, std::ofstream::out | std::ofstream::trunc);
+
+    for (int i = 0; i < row; i++)
+    {
+        output_file << labels[i] << "\n";
+    }
+    output_file.close();
+}

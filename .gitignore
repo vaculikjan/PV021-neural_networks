@@ -8,3 +8,6 @@ example_test_predictions.csv
 README.md
 TODO.md
 .clang-format
+test_predictions.csv
+train_predictions.csv
+mnist_fashion
